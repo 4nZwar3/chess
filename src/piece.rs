@@ -88,4 +88,7 @@ impl Piece {
     pub fn set_uses(&mut self, u: usize) {
         self.uses = u
     }
+    pub fn inc_use(&mut self) {
+        self.uses += 1
+    }
 }

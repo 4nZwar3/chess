@@ -7,7 +7,7 @@ pub struct Chess {
     selected: Option<usize>,
     marked: Option<usize>,
 }
-impl Chess  {
+impl Chess {
     pub fn new() -> Chess {
         Chess {
             pieces: Vec::new(),
@@ -109,8 +109,8 @@ impl Chess  {
                 {
                     print!("[{element}]");
                 } else if self.marked.is_some()
-                && i == self.pieces[self.marked.unwrap()].get_pos().x
-                && j == self.pieces[self.marked.unwrap()].get_pos().y
+                    && i == self.pieces[self.marked.unwrap()].get_pos().x
+                    && j == self.pieces[self.marked.unwrap()].get_pos().y
                 {
                     print!("<{element}>");
                 } else {
@@ -119,10 +119,14 @@ impl Chess  {
             }
             println!("|\n   - - - - - - - - - - - - - - - - -");
         }
-        println!("Turn number {} - {}", self.turn_count, match self.turn {
-            Team::White => "Whites",
-            _ => "Blacks"
-        })
+        println!(
+            "Turn number {} - {}",
+            self.turn_count,
+            match self.turn {
+                Team::White => "Whites",
+                _ => "Blacks",
+            }
+        )
     }
     fn do_turn(&mut self) {
         print!("Insert piece to move: ");
@@ -159,7 +163,9 @@ impl Chess  {
             println!("There is no piece to move.");
             return;
         }
-        if self.pieces[self.selected.unwrap()].get_pos() == self.pieces[self.marked.unwrap()].get_pos() {
+        if self.pieces[self.selected.unwrap()].get_pos()
+            == self.pieces[self.marked.unwrap()].get_pos()
+        {
             println!("Both positions are the same.");
             return;
         }
@@ -177,13 +183,13 @@ impl Chess  {
         let new_x = self.pieces[self.marked.unwrap()].get_pos().x;
         let new_y = self.pieces[self.marked.unwrap()].get_pos().y;
         self.pieces[self.selected.unwrap()].set_pos(new_x, new_y);
+        self.pieces[self.selected.unwrap()].inc_use();
         self.pieces.remove(self.marked.unwrap());
         self.turn_count += 1;
         self.switch_team();
     }
     fn pawn_move(&self) -> bool {
-            if (
-                (
+        if ((
                 self.pieces[self.selected.unwrap()].get_pos().y == self.pieces[self.marked.unwrap()].get_pos().y    //if the vertical position is the same
                 && (self.pieces[self.selected.unwrap()]
                     .get_pos()
@@ -192,8 +198,8 @@ impl Chess  {
                     == 1    //and the difference of the horizontal positions is equal to 1
                     || self.pieces[self.selected.unwrap()]
                         .get_pos()
-                        .y
-                        .abs_diff(self.pieces[self.marked.unwrap()].get_pos().y)
+                        .x
+                        .abs_diff(self.pieces[self.marked.unwrap()].get_pos().x)
                         == 2
                     && self.pieces[self.selected.unwrap()].get_uses() == 0  //or the difference of the horizontal positions is equal to 2 and selected has never been used
                 )
@@ -214,8 +220,8 @@ impl Chess  {
                 && self.pieces[self.selected.unwrap()].get_pos().x < self.pieces[self.marked.unwrap()].get_pos().x
                 || self.pieces[self.selected.unwrap()].is_black()
                 && self.pieces[self.selected.unwrap()].get_pos().x > self.pieces[self.marked.unwrap()].get_pos().x //and marked is forward for selected
-            )
-        ) && self.pieces[self.selected.unwrap()].get_team() == Some(self.turn)
+            ))
+            && self.pieces[self.selected.unwrap()].get_team() == Some(self.turn)
         {
             return true;
         }
