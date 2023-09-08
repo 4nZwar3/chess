@@ -30,12 +30,7 @@ pub struct Piece {
     uses: usize,
 }
 impl Piece {
-    pub fn new(
-        x: usize,
-        y: usize,
-        t: Option<Type>,
-        e: Option<Team>
-    ) -> Piece {
+    pub fn new(x: usize, y: usize, t: Option<Type>, e: Option<Team>) -> Piece {
         Piece {
             pos: Position::new(x, y),
             ty: t,
@@ -83,7 +78,7 @@ impl Piece {
         false
     }
     pub fn get_uses(&self) -> usize {
-        self.uses
+        self.uses.clone()
     }
     pub fn set_uses(&mut self, u: usize) {
         self.uses = u

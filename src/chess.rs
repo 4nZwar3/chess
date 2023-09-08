@@ -1,6 +1,29 @@
 use crate::piece::*;
 use std::io::{self, Write};
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd)]
+pub enum Mode {
+    Move,
+
+}
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd)]
+// Modes so that program can detect what action does user want to do
+pub enum MoveMode {
+    Select,
+    Mark,
+}
+impl MoveMode {
+    pub fn switch(&mut self) {
+        if *self == MoveMode::Select {
+            *self = MoveMode::Mark;
+            return;
+        }
+        *self = MoveMode::Select;
+    }
+}
+// This is the game itself. Contains all logistics and stuff
+// Could have used a crate but the main point was to do in myself :P
 pub struct Chess {
+    move_mode: MoveMode,
     pieces: Vec<Piece>,
     turn_count: usize,
     turn: Team,
@@ -10,12 +33,19 @@ pub struct Chess {
 impl Chess {
     pub fn new() -> Chess {
         Chess {
+            move_mode: MoveMode::Select,
             pieces: Vec::new(),
             turn_count: 0,
             turn: Team::White,
             selected: None,
             marked: None,
         }
+    }
+    pub fn get_move_mode(&self) -> MoveMode {
+        self.move_mode
+    }
+    pub fn switch_move_mode(&mut self) {
+        self.move_mode.switch()
     }
     pub fn init(&mut self) {
         for i in 0..2 {
@@ -32,39 +62,49 @@ impl Chess {
                 equip = Team::Black;
             }
             self.pieces
-                .push(Piece::new(ekis, 0, Some(Type::Tower), Some(equip)));
+                .push(Piece::new(ekis.clone(), 0, Some(Type::Tower), Some(equip)));
             self.pieces
-                .push(Piece::new(ekis, 1, Some(Type::Knight), Some(equip)));
+                .push(Piece::new(ekis.clone(), 1, Some(Type::Knight), Some(equip)));
             self.pieces
-                .push(Piece::new(ekis, 2, Some(Type::Bishop), Some(equip)));
+                .push(Piece::new(ekis.clone(), 2, Some(Type::Bishop), Some(equip)));
             self.pieces
-                .push(Piece::new(ekis, rei, Some(Type::King), Some(equip)));
+                .push(Piece::new(ekis.clone(), rei, Some(Type::King), Some(equip)));
+            self.pieces.push(Piece::new(
+                ekis.clone(),
+                quin,
+                Some(Type::Queen),
+                Some(equip),
+            ));
             self.pieces
-                .push(Piece::new(ekis, quin, Some(Type::Queen), Some(equip)));
+                .push(Piece::new(ekis.clone(), 5, Some(Type::Bishop), Some(equip)));
             self.pieces
-                .push(Piece::new(ekis, 5, Some(Type::Bishop), Some(equip)));
+                .push(Piece::new(ekis.clone(), 6, Some(Type::Knight), Some(equip)));
             self.pieces
-                .push(Piece::new(ekis, 6, Some(Type::Knight), Some(equip)));
-            self.pieces
-                .push(Piece::new(ekis, 7, Some(Type::Tower), Some(equip)));
+                .push(Piece::new(ekis.clone(), 7, Some(Type::Tower), Some(equip)));
             for j in 0..8 {
-                self.pieces
-                    .push(Piece::new(ekisde, j, Some(Type::Pawn), Some(equip)));
+                self.pieces.push(Piece::new(
+                    ekisde.clone(),
+                    j.clone(),
+                    Some(Type::Pawn),
+                    Some(equip),
+                ));
             }
         }
     }
     pub fn play(&mut self) {
         self.init();
         loop {
-            self.unsel_unmark();
+            self.reset_sel();
             self.print();
             self.do_turn();
         }
     }
-    fn unsel_unmark(&mut self) {
+    fn reset_sel(&mut self) {
         self.selected = None;
         self.marked = None;
+        self.move_mode = MoveMode::Select;
     }
+    // Needs a replacement that works with ui
     pub fn print(&self) {
         let mut table: [[i32; 8]; 8] = [
             [7, 7, 7, 7, 7, 7, 7, 7],
@@ -91,7 +131,7 @@ impl Chess {
             print!(" {} ", i + 1);
             for j in 0..8 {
                 print!("|");
-                let mut element = match table[i][j] {
+                let mut element = match table[i.clone()][j.clone()] {
                     1 | -1 => 'I',
                     2 | -2 => 'T',
                     3 | -3 => 'H',
@@ -100,7 +140,7 @@ impl Chess {
                     6 | -6 => 'K',
                     _ => ' ',
                 };
-                if table[i][j] < 0 {
+                if table[i.clone()][j.clone()] < 0 {
                     element = element.to_ascii_lowercase();
                 }
                 if self.selected.is_some()
@@ -128,6 +168,7 @@ impl Chess {
             }
         )
     }
+    // Needs a replacement that works with ui
     fn do_turn(&mut self) {
         print!("Insert piece to move: ");
         io::stdout().flush().unwrap();
@@ -158,6 +199,7 @@ impl Chess {
             _ => self.make_turn(),
         };
     }
+    // Needs a replacement that works with ui
     fn make_turn(&mut self) {
         if self.selected.is_none() {
             println!("There is no piece to move.");
@@ -227,6 +269,7 @@ impl Chess {
         }
         false
     }
+    // Needs a replacement that works with ui
     fn select(&mut self, une: char, deux: char) -> bool {
         let ex = Self::char_to_pos(une);
         let yi = Self::char_to_pos(deux);
@@ -243,6 +286,7 @@ impl Chess {
         println!("Piece not found.");
         false
     }
+    // Needs a replacement that works with ui
     fn mark(&mut self, une: char, deux: char) -> bool {
         let ex = Self::char_to_pos(une);
         let yi = Self::char_to_pos(deux);
